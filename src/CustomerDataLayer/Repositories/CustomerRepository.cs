@@ -1,4 +1,5 @@
 ﻿using CustomerLibrary.BusinessEntities;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 
 namespace CustomerLibrary.Repositories
@@ -117,6 +118,38 @@ namespace CustomerLibrary.Repositories
                 int affectedRows = command.ExecuteNonQuery();
 
                 return affectedRows > 0;
+            }
+        }
+
+        public List<Customer> ReadAll()
+        {
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+
+                var command = new SqlCommand(
+                    "SELECT * FROM [Customer]",
+                    connection);
+
+                var sqlReader = command.ExecuteReader();
+
+                var customers = new List<Customer>();
+
+                while (sqlReader.Read())
+                {
+                    var customer = new Customer
+                    {
+                        CustomerId = (int)sqlReader["CustomerID"],
+                        FirstName = (string)sqlReader["FirstName"],
+                        LastName = (string)sqlReader["LastName"],
+                        PhoneNumber = (string)sqlReader["PhoneNumber"],
+                        Email = (string)sqlReader["Email"],
+                        TotalPurchasesAmount = (decimal?)sqlReader["TotalPurchasesAmount"]
+                    };
+                    customers.Add(customer);
+                }
+
+                return customers;
             }
         }
 
