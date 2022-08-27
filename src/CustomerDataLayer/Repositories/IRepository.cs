@@ -2,9 +2,9 @@
 {
     public interface IRepository<TEntity>
     {
-        public int? Create(TEntity entity);
-        public TEntity? Read(int entityId);
-        public bool Update(TEntity entity);
-        public bool Delete(int entityId);
+        int? Create(TEntity entity);
+        TEntity Read(int entityId);
+        bool Update(TEntity entity);
+        bool Delete(int entityId);
     }
 }

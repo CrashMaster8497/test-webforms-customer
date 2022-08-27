@@ -4,6 +4,6 @@
     {
         public int NoteId { get; set; } = 0;
         public int CustomerId { get; set; } = 0;
-        public string? Text { get; set; } = null;
+        public string Text { get; set; } = null;
     }
 }
