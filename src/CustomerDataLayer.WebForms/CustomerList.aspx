@@ -16,7 +16,7 @@
                 <% =customer.LastName %>
             </td>
             <td>
-                <a href="#">Edit</a>
+                <a href="CustomerEdit.aspx?id=<% =customer.CustomerId %>">Edit</a>
             </td>
         </tr>
         <%
