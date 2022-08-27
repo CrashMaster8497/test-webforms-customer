@@ -109,6 +109,28 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             isDeleted.Should().BeFalse();
             deletedCustomer.Should().BeEquivalentTo(createdCustomer);
         }
+
+        [Fact]
+        public void ShouldBeAbleToReadAllCustomers()
+        {
+            CustomerRepositoryFixture.DeleteAllCustomers();
+
+            List<Customer> customers = new List<Customer>
+            {
+                CustomerRepositoryFixture.GetDefaultCustomer(),
+                CustomerRepositoryFixture.GetDefaultCustomer()
+            };
+            foreach (Customer customer in customers)
+            {
+                int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
+                customer.CustomerId = customerId;
+            }
+
+            var readCustomers = CustomerRepositoryFixture.ReadAllCustomers();
+
+            readCustomers.Should().NotBeNull();
+            readCustomers.Should().BeEquivalentTo(customers);
+        }
     }
 
     public class CustomerRepositoryFixture
@@ -152,6 +174,12 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             var customerRepository = new CustomerRepository();
             return customerRepository.Update(customer);
+        }
+
+        public static List<Customer> ReadAllCustomers()
+        {
+            var customerRepository = new CustomerRepository();
+            return customerRepository.ReadAll();
         }
 
         public static bool DeleteCustomer(int customerId)

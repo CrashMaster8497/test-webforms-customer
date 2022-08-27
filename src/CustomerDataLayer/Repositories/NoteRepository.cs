@@ -1,4 +1,5 @@
 ﻿using CustomerLibrary.BusinessEntities;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 
 namespace CustomerLibrary.Repositories
@@ -109,6 +110,11 @@ namespace CustomerLibrary.Repositories
 
                 return affectedRows > 0;
             }
+        }
+
+        public List<Note> ReadAll()
+        {
+            throw new System.NotImplementedException();
         }
 
         public void DeleteAll()

@@ -1,4 +1,6 @@
-﻿namespace CustomerLibrary.Repositories
+﻿using System.Collections.Generic;
+
+namespace CustomerLibrary.Repositories
 {
     public interface IRepository<TEntity>
     {
@@ -6,5 +8,6 @@
         TEntity Read(int entityId);
         bool Update(TEntity entity);
         bool Delete(int entityId);
+        List<TEntity> ReadAll();
     }
 }
