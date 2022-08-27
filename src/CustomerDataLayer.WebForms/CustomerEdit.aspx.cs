@@ -57,5 +57,12 @@ namespace CustomerDataLayer.WebForms
 
             Response.Redirect("CustomerList.aspx");
         }
+
+        protected void OnClickDelete(object sender, EventArgs e)
+        {
+            _customerRepository.Delete(customer.CustomerId);
+
+            Response.Redirect("CustomerList.aspx");
+        }
     }
 }

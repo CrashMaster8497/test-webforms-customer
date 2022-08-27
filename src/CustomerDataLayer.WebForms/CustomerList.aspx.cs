@@ -28,10 +28,5 @@ namespace CustomerDataLayer.WebForms
         {
             Response.Redirect("CustomerAdd.aspx");
         }
-
-        protected void OnClickRemove(object sender, EventArgs e)
-        {
-
-        }
     }
 }
