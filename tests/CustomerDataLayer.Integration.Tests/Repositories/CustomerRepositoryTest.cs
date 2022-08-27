@@ -147,8 +147,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
                 FirstName = "first",
                 LastName = "last",
                 PhoneNumber = "+12002000000",
-                Email = "a@b.c",
-                TotalPurchasesAmount = 0
+                Email = "a@b.c"
             };
         }
 

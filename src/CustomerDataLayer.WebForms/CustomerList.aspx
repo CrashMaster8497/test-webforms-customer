@@ -23,4 +23,5 @@
         }
         %>
     </table>
+    <asp:Button CssClass="btn btn-primary" Text="Add new customer" onclick="OnClickAdd" runat="server"></asp:Button>
 </asp:Content>
