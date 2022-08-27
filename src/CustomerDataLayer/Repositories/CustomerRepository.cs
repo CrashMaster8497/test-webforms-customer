@@ -1,4 +1,5 @@
 ﻿using CustomerLibrary.BusinessEntities;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 
@@ -17,15 +18,14 @@ namespace CustomerLibrary.Repositories
                     "OUTPUT INSERTED.[CustomerID] " +
                     "VALUES (@FirstName, @LastName, @PhoneNumber, @Email, @TotalPurchasesAmount)",
                     connection);
-                command.Parameters.AddRange(
-                    new SqlParameter[]
-                    {
+                command.Parameters.AddRange(new SqlParameter[]
+                {
                     new SqlParameter("@FirstName", System.Data.SqlDbType.NVarChar, 50) { Value = entity.FirstName },
                     new SqlParameter("@LastName", System.Data.SqlDbType.NVarChar, 50) { Value = entity.LastName },
                     new SqlParameter("@PhoneNumber", System.Data.SqlDbType.VarChar, 12) { Value = entity.PhoneNumber },
                     new SqlParameter("@Email", System.Data.SqlDbType.NVarChar, 100) { Value = entity.Email },
-                    new SqlParameter("@TotalPurchasesAmount", System.Data.SqlDbType.Money) { Value = entity.TotalPurchasesAmount, IsNullable = true }
-                    });
+                    new SqlParameter("@TotalPurchasesAmount", System.Data.SqlDbType.Money) { Value = (object)entity.TotalPurchasesAmount ?? DBNull.Value, IsNullable = true }
+                });
 
                 var sqlReader = command.ExecuteReader();
 
@@ -51,7 +51,8 @@ namespace CustomerLibrary.Repositories
                     "SELECT * FROM [Customer] " +
                     "WHERE [CustomerID] = @CustomerId",
                     connection);
-                command.Parameters.Add(new SqlParameter("@CustomerId", System.Data.SqlDbType.Int) { Value = entityId });
+                command.Parameters.Add(
+                    new SqlParameter("@CustomerId", System.Data.SqlDbType.Int) { Value = entityId });
 
                 var sqlReader = command.ExecuteReader();
 
@@ -68,7 +69,7 @@ namespace CustomerLibrary.Repositories
                     LastName = (string)sqlReader["LastName"],
                     PhoneNumber = (string)sqlReader["PhoneNumber"],
                     Email = (string)sqlReader["Email"],
-                    TotalPurchasesAmount = (decimal?)sqlReader["TotalPurchasesAmount"]
+                    TotalPurchasesAmount = sqlReader["TotalPurchasesAmount"] == DBNull.Value ? null : (decimal?)sqlReader["TotalPurchasesAmount"]
                 };
 
                 return customer;
@@ -86,16 +87,15 @@ namespace CustomerLibrary.Repositories
                     "SET [FirstName] = @FirstName, [LastName] = @LastName, [PhoneNumber] = @PhoneNumber, [Email] = @Email, [TotalPurchasesAmount] = @TotalPurchasesAmount " +
                     "WHERE [CustomerID] = @CustomerId",
                     connection);
-                command.Parameters.AddRange(
-                    new SqlParameter[]
-                    {
+                command.Parameters.AddRange(new SqlParameter[]
+                {
+                    new SqlParameter("@CustomerId", System.Data.SqlDbType.Int) { Value = entity.CustomerId },
                     new SqlParameter("@FirstName", System.Data.SqlDbType.NVarChar, 50) { Value = entity.FirstName },
                     new SqlParameter("@LastName", System.Data.SqlDbType.NVarChar, 50) { Value = entity.LastName },
                     new SqlParameter("@PhoneNumber", System.Data.SqlDbType.VarChar, 12) { Value = entity.PhoneNumber },
                     new SqlParameter("@Email", System.Data.SqlDbType.NVarChar, 100) { Value = entity.Email },
-                    new SqlParameter("@TotalPurchasesAmount", System.Data.SqlDbType.Money) { Value = entity.TotalPurchasesAmount, IsNullable = true },
-                    new SqlParameter("@CustomerId", System.Data.SqlDbType.Int) { Value = entity.CustomerId }
-                    });
+                    new SqlParameter("@TotalPurchasesAmount", System.Data.SqlDbType.Money) { Value = (object)entity.TotalPurchasesAmount ?? DBNull.Value, IsNullable = true }
+                });
 
                 int affectedRows = command.ExecuteNonQuery();
 
@@ -113,7 +113,8 @@ namespace CustomerLibrary.Repositories
                     "DELETE FROM [Customer] " +
                     "WHERE [CustomerID] = @CustomerId",
                     connection);
-                command.Parameters.Add(new SqlParameter("@CustomerId", System.Data.SqlDbType.Int) { Value = entityId });
+                command.Parameters.Add(
+                    new SqlParameter("@CustomerId", System.Data.SqlDbType.Int) { Value = entityId });
 
                 int affectedRows = command.ExecuteNonQuery();
 
@@ -144,7 +145,7 @@ namespace CustomerLibrary.Repositories
                         LastName = (string)sqlReader["LastName"],
                         PhoneNumber = (string)sqlReader["PhoneNumber"],
                         Email = (string)sqlReader["Email"],
-                        TotalPurchasesAmount = (decimal?)sqlReader["TotalPurchasesAmount"]
+                        TotalPurchasesAmount = sqlReader["TotalPurchasesAmount"] == DBNull.Value ? null : (decimal?)sqlReader["TotalPurchasesAmount"]
                     };
                     customers.Add(customer);
                 }
