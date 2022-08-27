@@ -20,5 +20,8 @@
         <asp:Label runat="server">Email</asp:Label>
         <asp:TextBox ID="email" runat="server"></asp:TextBox>
     </div>
-    <asp:Button CssClass="btn btn-primary" Text="Save" onclick="OnClickSave" runat="server"></asp:Button>
+    <div class="d-flex flex-row">
+        <asp:Button CssClass="btn btn-primary" Text="Save" onclick="OnClickSave" runat="server"></asp:Button>
+        <asp:Button CssClass="btn btn-danger" Text="Delete" onclick="OnClickDelete" runat="server"></asp:Button>
+    </div>
 </asp:Content>
