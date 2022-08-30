@@ -103,6 +103,12 @@ namespace CustomerLibrary.Repositories
 
         public bool Delete(int entityId)
         {
+            var addressRepository = new AddressRepository();
+            addressRepository.DeleteByCustomerId(entityId);
+
+            var noteRepository = new NoteRepository();
+            noteRepository.DeleteByCustomerId(entityId);
+
             using (var connection = GetConnection())
             {
                 var command = new SqlCommand(

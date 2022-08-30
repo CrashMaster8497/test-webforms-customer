@@ -31,7 +31,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotReadWithWrongId()
+        public void ShouldNotReadByWrongId()
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
@@ -61,7 +61,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotUpdateWithWrongId()
+        public void ShouldNotUpdateByWrongId()
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
@@ -95,7 +95,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotDeleteWithWrongId()
+        public void ShouldNotDeleteByWrongId()
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
@@ -127,8 +127,8 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Theory]
-        [MemberData(nameof(GenerateDataForReadWithOffsetCount))]
-        public void ShouldBeAbleToReadWithOffsetAndCount(List<Address> addresses, int offset, int count)
+        [MemberData(nameof(GenerateDataForReadByOffsetCount))]
+        public void ShouldBeAbleToReadByOffsetAndCount(List<Address> addresses, int offset, int count)
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
@@ -163,6 +163,23 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             deletedAddresses.Should().BeEmpty();
         }
 
+        [Fact]
+        public void ShouldBeAbleToDeleteByCustomerId()
+        {
+            AddressRepositoryFixture.DeleteAllAddresses();
+
+            var address = AddressRepositoryFixture.GetDefaultAddress();
+            int addressId = AddressRepositoryFixture.CreateAddress(address).Value;
+
+            var readAddress = AddressRepositoryFixture.ReadAddress(addressId);
+
+            int deletedRows = AddressRepositoryFixture.DeleteAddressesByCustomerId(readAddress.CustomerId);
+            var deletedAddress = AddressRepositoryFixture.ReadAddress(addressId);
+
+            deletedRows.Should().Be(1);
+            deletedAddress.Should().BeNull();
+        }
+
         private static IEnumerable<object[]> GenerateDataForCount()
         {
             List<Address> addresses;
@@ -180,7 +197,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             yield return new object[] { addresses };
         }
 
-        private static IEnumerable<object[]> GenerateDataForReadWithOffsetCount()
+        private static IEnumerable<object[]> GenerateDataForReadByOffsetCount()
         {
             List<Address> addresses;
 
@@ -313,6 +330,12 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             var addressRepository = new AddressRepository();
             addressRepository.DeleteAll();
+        }
+
+        public static int DeleteAddressesByCustomerId(int customerId)
+        {
+            var addressRepository = new AddressRepository();
+            return addressRepository.DeleteByCustomerId(customerId);
         }
     }
 }

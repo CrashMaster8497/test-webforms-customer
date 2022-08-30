@@ -31,7 +31,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotReadWithWrongId()
+        public void ShouldNotReadByWrongId()
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
@@ -61,7 +61,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotUpdateWithWrongId()
+        public void ShouldNotUpdateByWrongId()
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
@@ -95,7 +95,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotDeleteWithWrongId()
+        public void ShouldNotDeleteByWrongId()
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
@@ -127,8 +127,8 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Theory]
-        [MemberData(nameof(GenerateDataForReadWithOffsetCount))]
-        public void ShouldBeAbleToReadWithOffsetAndCount(List<Customer> customers, int offset, int count)
+        [MemberData(nameof(GenerateDataForReadByOffsetCount))]
+        public void ShouldBeAbleToReadByOffsetAndCount(List<Customer> customers, int offset, int count)
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
@@ -180,7 +180,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             yield return new object[] { customers };
         }
 
-        private static IEnumerable<object[]> GenerateDataForReadWithOffsetCount()
+        private static IEnumerable<object[]> GenerateDataForReadByOffsetCount()
         {
             List<Customer> customers;
 

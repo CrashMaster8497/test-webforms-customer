@@ -31,7 +31,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotReadWithWrongId()
+        public void ShouldNotReadByWrongId()
         {
             NoteRepositoryFixture.DeleteAllNotes();
 
@@ -61,7 +61,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotUpdateWithWrongId()
+        public void ShouldNotUpdateByWrongId()
         {
             NoteRepositoryFixture.DeleteAllNotes();
 
@@ -95,7 +95,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Fact]
-        public void ShouldNotDeleteWithWrongId()
+        public void ShouldNotDeleteByWrongId()
         {
             NoteRepositoryFixture.DeleteAllNotes();
 
@@ -127,8 +127,8 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         }
 
         [Theory]
-        [MemberData(nameof(GenerateDataForReadWithOffsetCount))]
-        public void ShouldBeAbleToReadWithOffsetAndCount(List<Note> notes, int offset, int count)
+        [MemberData(nameof(GenerateDataForReadByOffsetCount))]
+        public void ShouldBeAbleToReadByOffsetAndCount(List<Note> notes, int offset, int count)
         {
             NoteRepositoryFixture.DeleteAllNotes();
 
@@ -163,6 +163,23 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             deletedNotes.Should().BeEmpty();
         }
 
+        [Fact]
+        public void ShouldBeAbleToDeleteByCustomerId()
+        {
+            NoteRepositoryFixture.DeleteAllNotes();
+
+            var note = NoteRepositoryFixture.GetDefaultNote();
+            int noteId = NoteRepositoryFixture.CreateNote(note).Value;
+
+            var readNote = NoteRepositoryFixture.ReadNote(noteId);
+
+            int deletedRows = NoteRepositoryFixture.DeleteNotesByCustomerId(readNote.CustomerId);
+            var deletedNote = NoteRepositoryFixture.ReadNote(noteId);
+
+            deletedRows.Should().Be(1);
+            deletedNote.Should().BeNull();
+        }
+
         private static IEnumerable<object[]> GenerateDataForCount()
         {
             List<Note> notes;
@@ -180,7 +197,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             yield return new object[] { notes };
         }
 
-        private static IEnumerable<object[]> GenerateDataForReadWithOffsetCount()
+        private static IEnumerable<object[]> GenerateDataForReadByOffsetCount()
         {
             List<Note> notes;
 
@@ -307,6 +324,12 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             var noteRepository = new NoteRepository();
             noteRepository.DeleteAll();
+        }
+
+        public static int DeleteNotesByCustomerId(int customerId)
+        {
+            var noteRepository = new NoteRepository();
+            return noteRepository.DeleteByCustomerId(customerId);
         }
     }
 }

@@ -184,5 +184,22 @@ namespace CustomerLibrary.Repositories
                 command.ExecuteNonQuery();
             }
         }
+
+        public int DeleteByCustomerId(int customerId)
+        {
+            using (var connection = GetConnection())
+            {
+                var command = new SqlCommand(
+                    "DELETE FROM [Address] " +
+                    "WHERE [CustomerId] = @CustomerId",
+                    connection);
+                command.Parameters.Add(
+                    new SqlParameter("@CustomerId", System.Data.SqlDbType.Int) { Value = customerId });
+
+                int affectedRows = command.ExecuteNonQuery();
+
+                return affectedRows;
+            }
+        }
     }
 }

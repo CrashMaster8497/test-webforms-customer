@@ -11,7 +11,7 @@ namespace CustomerDataLayer.WebForms
 {
     public partial class CustomerList : System.Web.UI.Page
     {
-        const int MaxRecords = 3;
+        private const int MaxRecords = 3;
 
         private readonly CustomerRepository _customerRepository = new CustomerRepository();
         protected int _page;
@@ -25,18 +25,27 @@ namespace CustomerDataLayer.WebForms
         protected void Page_Load(object sender, EventArgs e)
         {
             string pageString = Request.QueryString["page"];
-            _page = string.IsNullOrEmpty(pageString) ? 1 : int.Parse(pageString);
+            int.TryParse(pageString, out _page);
+
+            int maxPage = Math.Max((_customerRepository.Count() + MaxRecords - 1) / MaxRecords, 1);
+
+            if (_page < 1)
+            {
+                Response.Redirect("CustomerList.aspx?page=1");
+            }
+            if (_page > maxPage)
+            {
+                Response.Redirect($"CustomerList.aspx?page={maxPage}");
+            }
 
             int offset = (_page - 1) * MaxRecords;
             _customerList = _customerRepository.Read(offset, MaxRecords);
 
-            int maxPage = (_customerRepository.Count() + MaxRecords - 1) / MaxRecords;
-
-            if (_page == 1)
+            if (_page <= 1)
             {
                 ButtonPrev.Enabled = false;
             }
-            if (_page == maxPage)
+            if (_page >= maxPage)
             {
                 ButtonNext.Enabled = false;
             }
