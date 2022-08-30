@@ -22,20 +22,21 @@ namespace CustomerDataLayer.WebForms
         protected void Page_Load(object sender, EventArgs e)
         {
             string customerIdString = Request.QueryString["id"];
+            int.TryParse(customerIdString, out int customerId);
 
-            if (string.IsNullOrEmpty(customerIdString))
+            customer = _customerRepository.Read(customerId);
+
+            if (customer == null)
             {
                 Response.Redirect("CustomerList.aspx");
             }
-
-            customer = _customerRepository.Read(int.Parse(customerIdString));
 
             if (IsPostBack)
             {
                 return;
             }
 
-            customerId.Text = customer.CustomerId.ToString();
+            this.customerId.Text = customer.CustomerId.ToString();
             firstName.Text = customer.FirstName;
             lastName.Text = customer.LastName;
             phoneNumber.Text = customer.PhoneNumber;
