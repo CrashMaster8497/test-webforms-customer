@@ -110,53 +110,13 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             deletedCustomer.Should().BeEquivalentTo(createdCustomer);
         }
 
-        [Fact]
-        public void ShouldBeAbleToReadAllCustomers()
-        {
-            CustomerRepositoryFixture.DeleteAllCustomers();
-
-            List<Customer> customers = new List<Customer>
-            {
-                CustomerRepositoryFixture.GetDefaultCustomer(),
-                CustomerRepositoryFixture.GetDefaultCustomer()
-            };
-            foreach (Customer customer in customers)
-            {
-                int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
-                customer.CustomerId = customerId;
-            }
-
-            var readCustomers = CustomerRepositoryFixture.ReadAllCustomers();
-
-            readCustomers.Should().NotBeNull();
-            readCustomers.Should().BeEquivalentTo(customers);
-        }
-
         [Theory]
-        [MemberData(nameof(GenerateDataForReadWithOffsetAndCount))]
-        public void ShouldBeAbleToReadWithOffsetAndCount(List<Customer> customers, int offset, int count)
-        {
-            CustomerRepositoryFixture.DeleteAllCustomers();
-
-            foreach (Customer customer in customers)
-            {
-                int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
-                customer.CustomerId = customerId;
-            }
-
-            var readCustomers = CustomerRepositoryFixture.Read(offset, count);
-
-            readCustomers.Should().NotBeNull();
-            readCustomers.Should().BeEquivalentTo(customers.Skip(offset).Take(count));
-        }
-
-        [Theory]
-        [MemberData(nameof(GenerateDataForCountCustomers))]
+        [MemberData(nameof(GenerateDataForCount))]
         public void ShouldBeAbleToCountCustomers(List<Customer> customers)
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
-            foreach (Customer customer in customers)
+            foreach (var customer in customers)
             {
                 CustomerRepositoryFixture.CreateCustomer(customer);
             }
@@ -166,9 +126,64 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             customersCount.Should().Be(customers.Count);
         }
 
-        private static IEnumerable<object[]> GenerateDataForReadWithOffsetAndCount()
+        [Theory]
+        [MemberData(nameof(GenerateDataForReadWithOffsetCount))]
+        public void ShouldBeAbleToReadWithOffsetAndCount(List<Customer> customers, int offset, int count)
+        {
+            CustomerRepositoryFixture.DeleteAllCustomers();
+
+            foreach (var customer in customers)
+            {
+                int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
+                customer.CustomerId = customerId;
+            }
+
+            var readCustomers = CustomerRepositoryFixture.ReadCustomers(offset, count);
+
+            readCustomers.Should().NotBeNull();
+            readCustomers.Should().BeEquivalentTo(customers.Skip(offset).Take(count));
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateDataForDeleteAll))]
+        public void ShouldBeAbleToDeleteAllCustomers(List<Customer> customers)
+        {
+            CustomerRepositoryFixture.DeleteAllCustomers();
+
+            foreach (var customer in customers)
+            {
+                CustomerRepositoryFixture.CreateCustomer(customer);
+            }
+
+            CustomerRepositoryFixture.DeleteAllCustomers();
+
+            var deletedCustomers = CustomerRepositoryFixture.ReadCustomers(0, customers.Count);
+
+            deletedCustomers.Should().NotBeNull();
+            deletedCustomers.Should().BeEmpty();
+        }
+
+        private static IEnumerable<object[]> GenerateDataForCount()
         {
             List<Customer> customers;
+
+            customers = new List<Customer>(0);
+            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
+            yield return new object[] { customers };
+
+            customers = new List<Customer>(1);
+            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
+            yield return new object[] { customers };
+
+            customers = new List<Customer>(10);
+            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
+            yield return new object[] { customers };
+        }
+
+        private static IEnumerable<object[]> GenerateDataForReadWithOffsetCount()
+        {
+            List<Customer> customers;
+
             customers = new List<Customer>(6);
             customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[]
@@ -177,6 +192,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
                 2,
                 2
             };
+
             customers = new List<Customer>(6);
             customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[]
@@ -185,6 +201,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
                 5,
                 3
             };
+
             customers = new List<Customer>(6);
             customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[]
@@ -193,45 +210,60 @@ namespace CustomerLibrary.Integration.Tests.Repositories
                 6,
                 2
             };
+
+            customers = new List<Customer>(6);
+            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
+            yield return new object[]
+            {
+                customers,
+                2,
+                0
+            };
+
+            customers = new List<Customer>(6);
+            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
+            yield return new object[]
+            {
+                customers,
+                7,
+                1
+            };
         }
 
-        private static IEnumerable<object[]> GenerateDataForCountCustomers()
+        private static IEnumerable<object[]> GenerateDataForDeleteAll()
         {
             List<Customer> customers;
+
             customers = new List<Customer>(0);
             customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[] { customers };
+
             customers = new List<Customer>(1);
             customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[] { customers };
+
             customers = new List<Customer>(10);
             customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[] { customers };
         }
     }
 
-    public class CustomerRepositoryFixture
+    public static class CustomerRepositoryFixture
     {
-        public static CustomerRepository GetCustomerRepository()
-        {
-            return new CustomerRepository();
-        }
-
         public static Customer GetDefaultCustomer()
         {
             return new Customer
             {
-                FirstName = "first",
-                LastName = "last",
+                FirstName = "First",
+                LastName = "Last",
                 PhoneNumber = "+12002000000",
                 Email = "a@b.c"
             };
         }
 
-        public static void DeleteAllCustomers()
+        public static CustomerRepository GetCustomerRepository()
         {
-            var customerRepository = new CustomerRepository();
-            customerRepository.DeleteAll();
+            return new CustomerRepository();
         }
 
         public static int? CreateCustomer(Customer customer)
@@ -252,18 +284,6 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             return customerRepository.Update(customer);
         }
 
-        public static List<Customer> ReadAllCustomers()
-        {
-            var customerRepository = new CustomerRepository();
-            return customerRepository.ReadAll();
-        }
-
-        public static List<Customer> Read(int offset, int count)
-        {
-            var customerRepository = new CustomerRepository();
-            return customerRepository.Read(offset, count);
-        }
-
         public static bool DeleteCustomer(int customerId)
         {
             var customerRepository = new CustomerRepository();
@@ -274,6 +294,18 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             var customerRepository = new CustomerRepository();
             return customerRepository.Count();
+        }
+
+        public static List<Customer> ReadCustomers(int offset, int count)
+        {
+            var customerRepository = new CustomerRepository();
+            return customerRepository.Read(offset, count);
+        }
+
+        public static void DeleteAllCustomers()
+        {
+            var customerRepository = new CustomerRepository();
+            customerRepository.DeleteAll();
         }
     }
 }

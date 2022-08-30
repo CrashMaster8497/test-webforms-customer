@@ -8,6 +8,8 @@ namespace CustomerLibrary.Repositories
         TEntity Read(int entityId);
         bool Update(TEntity entity);
         bool Delete(int entityId);
-        List<TEntity> ReadAll();
+        int Count();
+        List<TEntity> Read(int offset, int count);
+        void DeleteAll();
     }
 }
