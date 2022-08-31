@@ -15,12 +15,12 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             customerRepository.Should().NotBeNull();
         }
 
-        [Fact]
-        public void ShouldBeAbleToCreateAndReadCustomer()
+        [Theory]
+        [MemberData(nameof(GenerateCustomers))]
+        public void ShouldBeAbleToCreateAndReadCustomer(Customer customer)
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
-            var customer = CustomerRepositoryFixture.GetDefaultCustomer();
             int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
             customer.CustomerId = customerId;
 
@@ -35,7 +35,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
-            var customer = CustomerRepositoryFixture.GetDefaultCustomer();
+            var customer = CustomerRepositoryFixture.GetMinCustomer();
             CustomerRepositoryFixture.CreateCustomer(customer);
 
             var readCustomer = CustomerRepositoryFixture.ReadCustomer(0);
@@ -43,15 +43,16 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             readCustomer.Should().BeNull();
         }
 
-        [Fact]
-        public void ShouldBeAbleToUpdateCustomer()
+        [Theory]
+        [MemberData(nameof(GenerateCustomers))]
+        public void ShouldBeAbleToUpdateCustomer(Customer customer)
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
-            var customer = CustomerRepositoryFixture.GetDefaultCustomer();
             int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
 
             var modifiedCustomer = CustomerRepositoryFixture.ReadCustomer(customerId);
+            modifiedCustomer.LastName = "New last";
             modifiedCustomer.PhoneNumber = "+12112111111";
             bool isUpdated = CustomerRepositoryFixture.UpdateCustomer(modifiedCustomer);
             var updatedCustomer = CustomerRepositoryFixture.ReadCustomer(customerId);
@@ -65,12 +66,13 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
-            var customer = CustomerRepositoryFixture.GetDefaultCustomer();
+            var customer = CustomerRepositoryFixture.GetMinCustomer();
             int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
             var createdCustomer = CustomerRepositoryFixture.ReadCustomer(customerId);
 
             var modifiedCustomer = CustomerRepositoryFixture.ReadCustomer(customerId);
             modifiedCustomer.CustomerId = 0;
+            modifiedCustomer.LastName = "New last";
             modifiedCustomer.PhoneNumber = "+12112111111";
             bool isUpdated = CustomerRepositoryFixture.UpdateCustomer(modifiedCustomer);
             var updatedCustomer = CustomerRepositoryFixture.ReadCustomer(customerId);
@@ -84,7 +86,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
-            var customer = CustomerRepositoryFixture.GetDefaultCustomer();
+            var customer = CustomerRepositoryFixture.GetMinCustomer();
             int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
 
             bool isDeleted = CustomerRepositoryFixture.DeleteCustomer(customerId);
@@ -99,7 +101,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             CustomerRepositoryFixture.DeleteAllCustomers();
 
-            var customer = CustomerRepositoryFixture.GetDefaultCustomer();
+            var customer = CustomerRepositoryFixture.GetMinCustomer();
             int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
             var createdCustomer = CustomerRepositoryFixture.ReadCustomer(customerId);
 
@@ -163,68 +165,48 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             deletedCustomers.Should().BeEmpty();
         }
 
+        private static IEnumerable<object[]> GenerateCustomers()
+        {
+            yield return new object[] { CustomerRepositoryFixture.GetMinCustomer() };
+            yield return new object[] { CustomerRepositoryFixture.GetMaxCustomer() };
+        }
+
         private static IEnumerable<object[]> GenerateDataForCount()
         {
-            List<Customer> customers;
-
-            customers = new List<Customer>(0);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
-            yield return new object[] { customers };
-
-            customers = new List<Customer>(1);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
-            yield return new object[] { customers };
-
-            customers = new List<Customer>(10);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
-            yield return new object[] { customers };
+            yield return new object[] { new List<Customer>(0).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList() };
+            yield return new object[] { new List<Customer>(1).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList() };
+            yield return new object[] { new List<Customer>(10).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList() };
         }
 
         private static IEnumerable<object[]> GenerateDataForReadByOffsetCount()
         {
-            List<Customer> customers;
-
-            customers = new List<Customer>(6);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[]
             {
-                customers,
+                new List<Customer>(6).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList(),
                 2,
                 2
             };
-
-            customers = new List<Customer>(6);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[]
             {
-                customers,
+                new List<Customer>(6).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList(),
                 5,
                 3
             };
-
-            customers = new List<Customer>(6);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[]
             {
-                customers,
+                new List<Customer>(6).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList(),
                 6,
                 2
             };
-
-            customers = new List<Customer>(6);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[]
             {
-                customers,
+                new List<Customer>(6).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList(),
                 2,
                 0
             };
-
-            customers = new List<Customer>(6);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
             yield return new object[]
             {
-                customers,
+                new List<Customer>(6).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList(),
                 7,
                 1
             };
@@ -232,32 +214,31 @@ namespace CustomerLibrary.Integration.Tests.Repositories
 
         private static IEnumerable<object[]> GenerateDataForDeleteAll()
         {
-            List<Customer> customers;
-
-            customers = new List<Customer>(0);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
-            yield return new object[] { customers };
-
-            customers = new List<Customer>(1);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
-            yield return new object[] { customers };
-
-            customers = new List<Customer>(10);
-            customers.ForEach(customer => customer = CustomerRepositoryFixture.GetDefaultCustomer());
-            yield return new object[] { customers };
+            yield return new object[] { new List<Customer>(0).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList() };
+            yield return new object[] { new List<Customer>(1).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList() };
+            yield return new object[] { new List<Customer>(10).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList() };
         }
     }
 
     public static class CustomerRepositoryFixture
     {
-        public static Customer GetDefaultCustomer()
+        public static Customer GetMinCustomer()
+        {
+            return new Customer
+            {
+                LastName = "Last"
+            };
+        }
+
+        public static Customer GetMaxCustomer()
         {
             return new Customer
             {
                 FirstName = "First",
                 LastName = "Last",
                 PhoneNumber = "+12002000000",
-                Email = "a@b.c"
+                Email = "a@b.c",
+                TotalPurchasesAmount = 10
             };
         }
 

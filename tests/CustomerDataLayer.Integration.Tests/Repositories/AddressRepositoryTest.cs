@@ -15,12 +15,12 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             addressRepository.Should().NotBeNull();
         }
 
-        [Fact]
-        public void ShouldBeAbleToCreateAndReadAddress()
+        [Theory]
+        [MemberData(nameof(GenerateAddresses))]
+        public void ShouldBeAbleToCreateAndReadAddress(Address address)
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
-            var address = AddressRepositoryFixture.GetDefaultAddress();
             int addressId = AddressRepositoryFixture.CreateAddress(address).Value;
             address.AddressId = addressId;
 
@@ -35,7 +35,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
-            var address = AddressRepositoryFixture.GetDefaultAddress();
+            var address = AddressRepositoryFixture.GetMinAddress();
             AddressRepositoryFixture.CreateAddress(address);
 
             var readAddress = AddressRepositoryFixture.ReadAddress(0);
@@ -43,15 +43,16 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             readAddress.Should().BeNull();
         }
 
-        [Fact]
-        public void ShouldBeAbleToUpdateAddress()
+        [Theory]
+        [MemberData(nameof(GenerateAddresses))]
+        public void ShouldBeAbleToUpdateAddress(Address address)
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
-            var address = AddressRepositoryFixture.GetDefaultAddress();
             int addressId = AddressRepositoryFixture.CreateAddress(address).Value;
 
             var modifiedAddress = AddressRepositoryFixture.ReadAddress(addressId);
+            modifiedAddress.AddressLine2 = "New line2";
             modifiedAddress.PostalCode = "012345";
             bool isUpdated = AddressRepositoryFixture.UpdateAddress(modifiedAddress);
             var updatedAddress = AddressRepositoryFixture.ReadAddress(addressId);
@@ -65,12 +66,13 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
-            var address = AddressRepositoryFixture.GetDefaultAddress();
+            var address = AddressRepositoryFixture.GetMinAddress();
             int addressId = AddressRepositoryFixture.CreateAddress(address).Value;
             var createdAddress = AddressRepositoryFixture.ReadAddress(addressId);
 
             var modifiedAddress = AddressRepositoryFixture.ReadAddress(addressId);
             modifiedAddress.AddressId = 0;
+            modifiedAddress.AddressLine2 = "New line2";
             modifiedAddress.PostalCode = "012345";
             bool isUpdated = AddressRepositoryFixture.UpdateAddress(modifiedAddress);
             var updatedAddress = AddressRepositoryFixture.ReadAddress(addressId);
@@ -84,7 +86,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
-            var address = AddressRepositoryFixture.GetDefaultAddress();
+            var address = AddressRepositoryFixture.GetMinAddress();
             int addressId = AddressRepositoryFixture.CreateAddress(address).Value;
 
             bool isDeleted = AddressRepositoryFixture.DeleteAddress(addressId);
@@ -99,7 +101,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
-            var address = AddressRepositoryFixture.GetDefaultAddress();
+            var address = AddressRepositoryFixture.GetMinAddress();
             int addressId = AddressRepositoryFixture.CreateAddress(address).Value;
             var createdAddress = AddressRepositoryFixture.ReadAddress(addressId);
 
@@ -163,85 +165,108 @@ namespace CustomerLibrary.Integration.Tests.Repositories
             deletedAddresses.Should().BeEmpty();
         }
 
-        [Fact]
-        public void ShouldBeAbleToDeleteByCustomerId()
+        [Theory]
+        [MemberData(nameof(GenerateDataForReadByCustomerId))]
+        public void ShouldBeAbleToReadByCustomerId(List<List<Address>> addresses, List<Customer> customers, List<int> offsets, List<int> counts)
         {
             AddressRepositoryFixture.DeleteAllAddresses();
 
-            var address = AddressRepositoryFixture.GetDefaultAddress();
-            int addressId = AddressRepositoryFixture.CreateAddress(address).Value;
+            for (int i = 0; i < customers.Count; i++)
+            {
+                int customerId = CustomerRepositoryFixture.CreateCustomer(customers[i]).Value;
+                customers[i].CustomerId = customerId;
 
-            var readAddress = AddressRepositoryFixture.ReadAddress(addressId);
+                foreach (var address in addresses[i])
+                {
+                    int addressId = AddressRepositoryFixture.CreateAddress(address, customers[i]).Value;
+                    address.AddressId = addressId;
+                }
+            }
 
-            int deletedRows = AddressRepositoryFixture.DeleteAddressesByCustomerId(readAddress.CustomerId);
-            var deletedAddress = AddressRepositoryFixture.ReadAddress(addressId);
+            for (int i = 0; i < customers.Count; i++)
+            {
+                var readAddresses = AddressRepositoryFixture.ReadAddressesByCustomerId(customers[i].CustomerId, offsets[i], counts[i]);
 
-            deletedRows.Should().Be(1);
-            deletedAddress.Should().BeNull();
+                readAddresses.Should().BeEquivalentTo(addresses[i].Skip(offsets[i]).Take(counts[i]));
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateDataForDeleteByCustomerId))]
+        public void ShouldBeAbleToDeleteByCustomerId(List<List<Address>> addresses, List<Customer> customers)
+        {
+            AddressRepositoryFixture.DeleteAllAddresses();
+
+            for (int i = 0; i < customers.Count; i++)
+            {
+                int customerId = CustomerRepositoryFixture.CreateCustomer(customers[i]).Value;
+                customers[i].CustomerId = customerId;
+
+                foreach (var address in addresses[i])
+                {
+                    AddressRepositoryFixture.CreateAddress(address, customers[i]);
+                }
+            }
+
+            for (int i = 0; i < customers.Count; i++)
+            {
+                int deletedRows = AddressRepositoryFixture.DeleteAddressesByCustomerId(customers[i].CustomerId);
+                var deletedAddresses = AddressRepositoryFixture.ReadAddressesByCustomerId(customers[i].CustomerId, 0, addresses[i].Count);
+
+                deletedRows.Should().Be(addresses[i].Count);
+                deletedAddresses.Should().BeEmpty();
+
+                for (int j = i + 1; j < customers.Count; i++)
+                {
+                    var notDeletedAddresses = AddressRepositoryFixture.ReadAddressesByCustomerId(customers[i].CustomerId, 0, addresses[i].Count);
+
+                    notDeletedAddresses.Should().NotBeEmpty();
+                }
+            }
+        }
+
+        private static IEnumerable<object[]> GenerateAddresses()
+        {
+            yield return new object[] { AddressRepositoryFixture.GetMinAddress() };
+            yield return new object[] { AddressRepositoryFixture.GetMaxAddress() };
         }
 
         private static IEnumerable<object[]> GenerateDataForCount()
         {
-            List<Address> addresses;
-
-            addresses = new List<Address>(0);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
-            yield return new object[] { addresses };
-
-            addresses = new List<Address>(1);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
-            yield return new object[] { addresses };
-
-            addresses = new List<Address>(10);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
-            yield return new object[] { addresses };
+            yield return new object[] { new List<Address>(0).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList() };
+            yield return new object[] { new List<Address>(1).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList() };
+            yield return new object[] { new List<Address>(10).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList() };
         }
 
         private static IEnumerable<object[]> GenerateDataForReadByOffsetCount()
         {
-            List<Address> addresses;
-
-            addresses = new List<Address>(6);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
             yield return new object[]
             {
-                addresses,
+                new List<Address>(6).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
                 2,
                 2
             };
-
-            addresses = new List<Address>(6);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
             yield return new object[]
             {
-                addresses,
+                new List<Address>(6).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
                 5,
                 3
             };
-
-            addresses = new List<Address>(6);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
             yield return new object[]
             {
-                addresses,
+                new List<Address>(6).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
                 6,
                 2
             };
-
-            addresses = new List<Address>(6);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
             yield return new object[]
             {
-                addresses,
+                new List<Address>(6).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
                 2,
                 0
             };
-
-            addresses = new List<Address>(6);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
             yield return new object[]
             {
-                addresses,
+                new List<Address>(6).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
                 7,
                 1
             };
@@ -249,25 +274,70 @@ namespace CustomerLibrary.Integration.Tests.Repositories
 
         private static IEnumerable<object[]> GenerateDataForDeleteAll()
         {
-            List<Address> addresses;
+            yield return new object[] { new List<Address>(0).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList() };
+            yield return new object[] { new List<Address>(1).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList() };
+            yield return new object[] { new List<Address>(10).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList() };
+        }
 
-            addresses = new List<Address>(0);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
-            yield return new object[] { addresses };
+        private static IEnumerable<object[]> GenerateDataForReadByCustomerId()
+        {
+            yield return new object[]
+            {
+                new List<List<Address>>
+                {
+                    new List<Address>(1).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
+                    new List<Address>(0).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
+                    new List<Address>(4).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList()
+                },
+                new List<Customer>(3).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList(),
+                new List<int> { 0, 0, 0 },
+                new List<int> { 1, 0, 4 }
+            };
+            yield return new object[]
+            {
+                new List<List<Address>>
+                {
+                    new List<Address>(1).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
+                    new List<Address>(0).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
+                    new List<Address>(4).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList()
+                },
+                new List<Customer>(3).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList(),
+                new List<int> { 1, 1, 2 },
+                new List<int> { 0, 2, 4 }
+            };
+        }
 
-            addresses = new List<Address>(1);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
-            yield return new object[] { addresses };
-
-            addresses = new List<Address>(10);
-            addresses.ForEach(address => address = AddressRepositoryFixture.GetDefaultAddress());
-            yield return new object[] { addresses };
+        private static IEnumerable<object[]> GenerateDataForDeleteByCustomerId()
+        {
+            yield return new object[]
+            {
+                new List<List<Address>>
+                {
+                    new List<Address>(1).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
+                    new List<Address>(0).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList(),
+                    new List<Address>(3).Select(address => address = AddressRepositoryFixture.GetMinAddress()).ToList()
+                },
+                new List<Customer>(3).Select(customer => customer = CustomerRepositoryFixture.GetMinCustomer()).ToList()
+            };
         }
     }
 
     public static class AddressRepositoryFixture
     {
-        public static Address GetDefaultAddress()
+        public static Address GetMinAddress()
+        {
+            return new Address
+            {
+                AddressLine = "Line",
+                AddressType = AddressType.Shipping,
+                City = "City",
+                PostalCode = "000000",
+                State = "State",
+                Country = "United States"
+            };
+        }
+
+        public static Address GetMaxAddress()
         {
             return new Address
             {
@@ -288,11 +358,18 @@ namespace CustomerLibrary.Integration.Tests.Repositories
 
         public static int? CreateAddress(Address address)
         {
-            var customer = CustomerRepositoryFixture.GetDefaultCustomer();
+            var customer = CustomerRepositoryFixture.GetMinCustomer();
             int customerId = CustomerRepositoryFixture.CreateCustomer(customer).Value;
             address.CustomerId = customerId;
 
             var addressRepository = new AddressRepository();
+            return addressRepository.Create(address);
+        }
+
+        public static int? CreateAddress(Address address, Customer customer)
+        {
+            var addressRepository = new AddressRepository();
+            address.CustomerId = customer.CustomerId;
             return addressRepository.Create(address);
         }
 
@@ -330,6 +407,12 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             var addressRepository = new AddressRepository();
             addressRepository.DeleteAll();
+        }
+
+        public static List<Address> ReadAddressesByCustomerId(int customerId, int offset, int count)
+        {
+            var addressRepository = new AddressRepository();
+            return addressRepository.ReadByCustomerId(customerId, offset, count);
         }
 
         public static int DeleteAddressesByCustomerId(int customerId)

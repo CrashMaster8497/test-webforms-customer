@@ -7,31 +7,6 @@ namespace CustomerLibrary.Repositories
 {
     public class CustomerRepository : BaseRepository, IRepository<Customer>
     {
-        private static SqlParameter[] GetDefaultParameters(Customer customer)
-        {
-            return new SqlParameter[]
-            {
-                new SqlParameter("@FirstName", System.Data.SqlDbType.NVarChar, 50) { Value = customer.FirstName },
-                new SqlParameter("@LastName", System.Data.SqlDbType.NVarChar, 50) { Value = customer.LastName },
-                new SqlParameter("@PhoneNumber", System.Data.SqlDbType.VarChar, 12) { Value = customer.PhoneNumber },
-                new SqlParameter("@Email", System.Data.SqlDbType.NVarChar, 100) { Value = customer.Email },
-                new SqlParameter("@TotalPurchasesAmount", System.Data.SqlDbType.Money) { Value = (object)customer.TotalPurchasesAmount ?? DBNull.Value, IsNullable = true }
-            };
-        }
-
-        private static Customer GetCustomer(SqlDataReader reader)
-        {
-            return new Customer
-            {
-                CustomerId = (int)reader["CustomerId"],
-                FirstName = (string)reader["FirstName"],
-                LastName = (string)reader["LastName"],
-                PhoneNumber = (string)reader["PhoneNumber"],
-                Email = (string)reader["Email"],
-                TotalPurchasesAmount = reader["TotalPurchasesAmount"] == DBNull.Value ? null : (decimal?)reader["TotalPurchasesAmount"]
-            };
-        }
-
         public int? Create(Customer entity)
         {
             using (var connection = GetConnection())
@@ -183,6 +158,50 @@ namespace CustomerLibrary.Repositories
 
                 command.ExecuteNonQuery();
             }
+        }
+
+        private static SqlParameter[] GetDefaultParameters(Customer customer)
+        {
+            return new SqlParameter[]
+            {
+                new SqlParameter("@FirstName", System.Data.SqlDbType.NVarChar, 50)
+                {
+                    Value = string.IsNullOrWhiteSpace(customer.FirstName) ? DBNull.Value : (object)customer.FirstName,
+                    IsNullable = true
+                },
+                new SqlParameter("@LastName", System.Data.SqlDbType.NVarChar, 50)
+                {
+                    Value = customer.LastName
+                },
+                new SqlParameter("@PhoneNumber", System.Data.SqlDbType.VarChar, 12)
+                {
+                    Value = string.IsNullOrWhiteSpace(customer.PhoneNumber) ? DBNull.Value : (object)customer.PhoneNumber,
+                    IsNullable = true
+                },
+                new SqlParameter("@Email", System.Data.SqlDbType.VarChar, 100)
+                {
+                    Value = string.IsNullOrWhiteSpace(customer.Email) ? DBNull.Value : (object)customer.Email,
+                    IsNullable = true
+                },
+                new SqlParameter("@TotalPurchasesAmount", System.Data.SqlDbType.Money)
+                {
+                    Value = (object)customer.TotalPurchasesAmount ?? DBNull.Value,
+                    IsNullable = true
+                }
+            };
+        }
+
+        private static Customer GetCustomer(SqlDataReader reader)
+        {
+            return new Customer
+            {
+                CustomerId = (int)reader["CustomerId"],
+                FirstName = reader["FirstName"] == DBNull.Value ? string.Empty : (string)reader["FirstName"],
+                LastName = (string)reader["LastName"],
+                PhoneNumber = reader["PhoneNumber"] == DBNull.Value ? string.Empty : (string)reader["PhoneNumber"],
+                Email = reader["Email"] == DBNull.Value ? string.Empty : (string)reader["Email"],
+                TotalPurchasesAmount = reader["TotalPurchasesAmount"] == DBNull.Value ? null : (decimal?)reader["TotalPurchasesAmount"]
+            };
         }
     }
 }
