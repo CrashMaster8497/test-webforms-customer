@@ -2,9 +2,6 @@
 using CustomerLibrary.Repositories;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace CustomerDataLayer.WebForms
@@ -14,8 +11,8 @@ namespace CustomerDataLayer.WebForms
         private const int MaxRecords = 3;
 
         private readonly CustomerRepository _customerRepository = new CustomerRepository();
-        protected int _page;
-        protected List<Customer> _customerList;
+        private int _page;
+        protected List<Customer> Customers;
 
         public CustomerList()
         {
@@ -39,7 +36,10 @@ namespace CustomerDataLayer.WebForms
             }
 
             int offset = (_page - 1) * MaxRecords;
-            _customerList = _customerRepository.Read(offset, MaxRecords);
+            Customers = _customerRepository.Read(offset, MaxRecords);
+
+            CustomersRepeater.DataSource = Customers;
+            CustomersRepeater.DataBind();
 
             if (_page <= 1)
             {
@@ -64,6 +64,14 @@ namespace CustomerDataLayer.WebForms
         protected void OnClickNextPage(object sender, EventArgs e)
         {
             Response.Redirect($"CustomerList.aspx?page={_page + 1}");
+        }
+
+        protected void OnClickDeleteCustomer(object sender, EventArgs e)
+        {
+            int.TryParse(((LinkButton)sender).CommandArgument, out int customerId);
+            _customerRepository.Delete(customerId);
+
+            Response.Redirect($"CustomerList.aspx?page={_page}");
         }
     }
 }

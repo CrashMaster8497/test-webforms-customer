@@ -3,20 +3,28 @@ using CustomerLibrary.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace CustomerDataLayer.WebForms
 {
     public partial class CustomerEdit : System.Web.UI.Page
     {
-        private readonly CustomerRepository _customerRepository = new CustomerRepository();
-        protected Customer customer;
+        private readonly CustomerRepository _customerRepository;
+        private readonly AddressRepository _addressRepository;
+        protected Customer Customer;
+        protected List<Address> Addresses;
+        protected List<Address> ShippingAddresses;
+        protected List<Address> BillingAddresses;
+        protected List<string> Countries = new List<string>
+        {
+            "United States",
+            "Canada"
+        };
 
         public CustomerEdit()
         {
             _customerRepository = new CustomerRepository();
+            _addressRepository = new AddressRepository();
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -24,35 +32,49 @@ namespace CustomerDataLayer.WebForms
             string customerIdString = Request.QueryString["id"];
             int.TryParse(customerIdString, out int customerId);
 
-            customer = _customerRepository.Read(customerId);
+            Customer = _customerRepository.Read(customerId);
 
-            if (customer == null)
+            if (Customer == null)
             {
                 Response.Redirect("CustomerList.aspx");
             }
+
+            Addresses = _addressRepository.ReadByCustomerId(customerId, 0, 1000);
+            ShippingAddresses = Addresses.Where(address => address.AddressType == AddressType.Shipping).ToList();
+            BillingAddresses = Addresses.Where(address => address.AddressType == AddressType.Billing).ToList();
+
+            ShippingAddressesRepeater.DataSource = ShippingAddresses;
+            ShippingAddressesRepeater.DataBind();
+            BillingAddressesRepeater.DataSource = BillingAddresses;
+            BillingAddressesRepeater.DataBind();
 
             if (IsPostBack)
             {
                 return;
             }
 
-            this.customerId.Text = customer.CustomerId.ToString();
-            firstName.Text = customer.FirstName;
-            lastName.Text = customer.LastName;
-            phoneNumber.Text = customer.PhoneNumber;
-            email.Text = customer.Email;
+            this.customerId.Text = Customer.CustomerId.ToString();
+            firstName.Text = Customer.FirstName;
+            lastName.Text = Customer.LastName;
+            phoneNumber.Text = Customer.PhoneNumber;
+            email.Text = Customer.Email;
+
+            foreach (var country in Countries)
+            {
+                this.country.Items.Add(country);
+            }
         }
 
         protected void OnClickSave(object sender, EventArgs e)
         {
             var modifiedCustomer = new Customer
             {
-                CustomerId = customer.CustomerId,
+                CustomerId = Customer.CustomerId,
                 FirstName = firstName.Text,
                 LastName = lastName.Text,
                 PhoneNumber = phoneNumber.Text,
                 Email = email.Text,
-                TotalPurchasesAmount = customer.TotalPurchasesAmount
+                TotalPurchasesAmount = Customer.TotalPurchasesAmount
             };
             _customerRepository.Update(modifiedCustomer);
 
@@ -61,9 +83,57 @@ namespace CustomerDataLayer.WebForms
 
         protected void OnClickDelete(object sender, EventArgs e)
         {
-            _customerRepository.Delete(customer.CustomerId);
+            _customerRepository.Delete(Customer.CustomerId);
 
             Response.Redirect("CustomerList.aspx");
+        }
+
+        protected void OnClickAddAddress(object sender, EventArgs e)
+        {
+            Enum.TryParse(this.addressType.SelectedValue, out AddressType addressType);
+            var address = new Address
+            {
+                CustomerId = Customer.CustomerId,
+                AddressLine = addressLine.Text,
+                AddressLine2 = addressLine2.Text,
+                AddressType = addressType,
+                City = city.Text,
+                PostalCode = postalCode.Text,
+                State = state.Text,
+                Country = country.SelectedValue
+            };
+
+            _addressRepository.Create(address);
+
+            Response.Redirect($"CustomerEdit.aspx?id={Customer.CustomerId}");
+        }
+
+        protected void OnClickDeleteAllShippingAddresses(object sender, EventArgs e)
+        {
+            foreach (var address in ShippingAddresses)
+            {
+                _addressRepository.Delete(address.AddressId);
+            }
+
+            Response.Redirect($"CustomerEdit.aspx?id={Customer.CustomerId}");
+        }
+
+        protected void OnClickDeleteAllBillingAddresses(object sender, EventArgs e)
+        {
+            foreach (var address in BillingAddresses)
+            {
+                _addressRepository.Delete(address.AddressId);
+            }
+
+            Response.Redirect($"CustomerEdit.aspx?id={Customer.CustomerId}");
+        }
+
+        protected void OnClickDeleteAddress(object sender, EventArgs e)
+        {
+            int.TryParse(((LinkButton)sender).CommandArgument, out int addressId);
+            _addressRepository.Delete(addressId);
+
+            Response.Redirect($"CustomerEdit.aspx?id={Customer.CustomerId}");
         }
     }
 }
