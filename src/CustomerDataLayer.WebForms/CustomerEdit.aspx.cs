@@ -11,10 +11,12 @@ namespace CustomerDataLayer.WebForms
     {
         private readonly CustomerRepository _customerRepository;
         private readonly AddressRepository _addressRepository;
+        private readonly NoteRepository _noteRepository;
         protected Customer Customer;
         protected List<Address> Addresses;
         protected List<Address> ShippingAddresses;
         protected List<Address> BillingAddresses;
+        protected List<Note> Notes;
         protected List<string> Countries = new List<string>
         {
             "United States",
@@ -25,6 +27,7 @@ namespace CustomerDataLayer.WebForms
         {
             _customerRepository = new CustomerRepository();
             _addressRepository = new AddressRepository();
+            _noteRepository = new NoteRepository();
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -47,6 +50,11 @@ namespace CustomerDataLayer.WebForms
             ShippingAddressesRepeater.DataBind();
             BillingAddressesRepeater.DataSource = BillingAddresses;
             BillingAddressesRepeater.DataBind();
+
+            Notes = _noteRepository.ReadByCustomerId(customerId, 0, 1000);
+
+            NotesRepeater.DataSource = Notes;
+            NotesRepeater.DataBind();
 
             if (IsPostBack)
             {
@@ -102,7 +110,6 @@ namespace CustomerDataLayer.WebForms
                 State = state.Text,
                 Country = country.SelectedValue
             };
-
             _addressRepository.Create(address);
 
             Response.Redirect($"CustomerEdit.aspx?id={Customer.CustomerId}");
@@ -132,6 +139,26 @@ namespace CustomerDataLayer.WebForms
         {
             int.TryParse(((LinkButton)sender).CommandArgument, out int addressId);
             _addressRepository.Delete(addressId);
+
+            Response.Redirect($"CustomerEdit.aspx?id={Customer.CustomerId}");
+        }
+
+        protected void OnClickAddNote(object sender, EventArgs e)
+        {
+            var note = new Note
+            {
+                CustomerId = Customer.CustomerId,
+                Text = text.Text
+            };
+            _noteRepository.Create(note);
+
+            Response.Redirect($"CustomerEdit.aspx?id={Customer.CustomerId}");
+        }
+
+        protected void OnClickDeleteNote(object sender, EventArgs e)
+        {
+            int.TryParse(((LinkButton)sender).CommandArgument, out int noteId);
+            _noteRepository.Delete(noteId);
 
             Response.Redirect($"CustomerEdit.aspx?id={Customer.CustomerId}");
         }

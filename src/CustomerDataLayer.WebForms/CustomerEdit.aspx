@@ -83,6 +83,47 @@
         <asp:Button CssClass="btn btn-danger" Text="Delete" OnClick="OnClickDelete" ValidationGroup="NoGroup" runat="server"></asp:Button>
     </div>
 
+    <h4 style="margin-top: 50px"><b>Notes</b></h4>
+
+    <table class="table">
+        <asp:Repeater ID="NotesRepeater" runat="server">
+            <ItemTemplate>
+                <tr>
+                    <td><%# DataBinder.Eval(Container.DataItem, "Text") %></td>
+                    <td>
+                        <a href='NoteEdit.aspx?id=<%# DataBinder.Eval(Container.DataItem, "NoteId") %>'>
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            Edit
+                        </a>
+                        |
+                        <asp:LinkButton OnClick="OnClickDeleteNote" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "NoteId") %>' ValidationGroup="NoGroup" runat="server">
+                            <span class="glyphicon glyphicon-remove"></span>
+                            Delete
+                        </asp:LinkButton>
+                    </td>
+                </tr>
+            </ItemTemplate>
+        </asp:Repeater>
+    </table>
+
+    <h4 style="margin-top: 50px"><b>Add New Note</b></h4>
+
+    <div class="form-group">
+        <asp:Label CssClass="control-label" Text="Text" runat="server"></asp:Label>
+        <asp:TextBox ID="text" CssClass="form-control" MaxLength="100" runat="server"></asp:TextBox>
+        <asp:RequiredFieldValidator
+            ControlToValidate="text"
+            ValidationGroup="NoteGroup"
+            ErrorMessage="Text is required"
+            SetFocusOnError="true"
+            ForeColor="Red"
+            Display="Dynamic"
+            runat="server">
+        </asp:RequiredFieldValidator>
+    </div>
+
+    <asp:Button CssClass="btn btn-primary" Text="Add" OnClick="OnClickAddNote" ValidationGroup="NoteGroup" runat="server"></asp:Button>
+
     <h4 style="margin-top: 50px"><b>Shipping Addresses</b></h4>
 
     <table class="table">
@@ -100,24 +141,12 @@
         <asp:Repeater ID="ShippingAddressesRepeater" runat="server">
             <ItemTemplate>
                 <tr>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "AddressLine") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "AddressLine2") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "City") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "PostalCode") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "State") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "Country") %>
-                    </td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "AddressLine") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "AddressLine2") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "City") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "PostalCode") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "State") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "Country") %></td>
                     <td>
                         <a href='AddressEdit.aspx?id=<%# DataBinder.Eval(Container.DataItem, "AddressId") %>'>
                             <span class="glyphicon glyphicon-pencil"></span>
@@ -151,24 +180,12 @@
         <asp:Repeater ID="BillingAddressesRepeater" runat="server">
             <ItemTemplate>
                 <tr>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "AddressLine") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "AddressLine2") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "City") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "PostalCode") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "State") %>
-                    </td>
-                    <td>
-                        <%# DataBinder.Eval(Container.DataItem, "Country") %>
-                    </td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "AddressLine") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "AddressLine2") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "City") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "PostalCode") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "State") %></td>
+                    <td><%# DataBinder.Eval(Container.DataItem, "Country") %></td>
                     <td>
                         <a href='AddressEdit.aspx?id=<%# DataBinder.Eval(Container.DataItem, "AddressId") %>'>
                             <span class="glyphicon glyphicon-pencil"></span>
