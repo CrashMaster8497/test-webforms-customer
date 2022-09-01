@@ -1,4 +1,5 @@
 ﻿using CustomerLibrary.Repositories;
+using FluentAssertions;
 
 namespace CustomerLibrary.Integration.Tests.Repositories
 {
@@ -10,7 +11,7 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         {
             var connection = BaseRepository.GetConnection();
 
-            Assert.NotNull(connection);
+            connection.Should().NotBeNull();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CustomerLibrary.BusinessEntities;
 using CustomerLibrary.Repositories;
+using FluentAssertions;
 
 namespace CustomerLibrary.Integration.Tests.Repositories
 {
@@ -10,8 +11,8 @@ namespace CustomerLibrary.Integration.Tests.Repositories
         [MemberData(nameof(RepositoryTestData))]
         public void ShouldBeAbleToCreateRepository(object repository, Type interfaceType)
         {
-            Assert.Contains(interfaceType, repository.GetType().GetInterfaces());
-            Assert.NotNull(repository);
+            repository.Should().NotBeNull();
+            repository.GetType().Should().Implement(interfaceType);
         }
 
         private static IEnumerable<object[]> RepositoryTestData()
