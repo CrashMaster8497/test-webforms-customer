@@ -75,7 +75,7 @@ namespace CustomerDataLayer.WebForms
 
         protected void OnClickDelete(object sender, EventArgs e)
         {
-            _addressRepository.Delete(Address.CustomerId);
+            _addressRepository.Delete(Address.AddressId);
 
             Response.Redirect($"CustomerEdit.aspx?id={Address.CustomerId}");
         }
